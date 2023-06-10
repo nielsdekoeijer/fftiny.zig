@@ -5,7 +5,7 @@ pub const FFTMODE = utility.FFTMODE;
 
 // =butterfly-2================================================================
 // strided list
-pub inline fn butterfly2sl(comptime T: type, comptime mode: FFTMODE, x0: [2]T, x1: [2]T) [2][2]T {
+pub inline fn butterfly2sl(comptime T: type, comptime mode: FFTMODE, x0: *const [2]T, x1: *const [2]T) [2][2]T {
     _ = mode;
     const x0v = @Vector(2, T){ x0[0], x0[1] };
     const x1v = @Vector(2, T){ x1[0], x1[1] };
@@ -14,16 +14,16 @@ pub inline fn butterfly2sl(comptime T: type, comptime mode: FFTMODE, x0: [2]T, x
 
 test "butterfly2sl" {
     const T = f32;
-    var x0: @Vector(2, T) = [_]T{
+    var x0 = [_]T{
         -2.3741363830674853,
         -0.27588287433592273,
     };
-    var x1: @Vector(2, T) = [_]T{
+    var x1 = [_]T{
         -2.3846697075321135,
         -2.6767359305510112,
     };
-    const y = butterfly2sl(T, FFTMODE.FW, x0, x1);
-    const r: [2]@Vector(2, T) = [_]@Vector(2, T){ @Vector(2, T){
+    const y = butterfly2sl(T, FFTMODE.FW, &x0, &x1);
+    const r = [_]@Vector(2, T){ @Vector(2, T){
         -4.758806090599599,
         -2.952618804886934,
     }, @Vector(2, T){
@@ -38,31 +38,28 @@ test "butterfly2sl" {
 }
 
 // strided packed
-pub inline fn butterfly2sp(comptime T: type, comptime mode: FFTMODE, x0: [2]T, x1: [2]T) [4]T {
+pub inline fn butterfly2sp(comptime T: type, comptime mode: FFTMODE, x0: *const [2]T, x1: *const [2]T) [4]T {
     _ = mode;
-    return [_]T{
-        x0[0] + x1[0],
-        x0[1] + x1[1],
-        x0[0] - x1[0],
-        x0[1] - x1[1],
-    };
+    const x0v = @Vector(2, T){ x0[0], x0[1] };
+    const x1v = @Vector(2, T){ x1[0], x1[1] };
+    return @as([2]T, (x0v + x1v)) ++ @as([2]T, (x0v - x1v));
 }
 
 test "butterfly2sp" {
     const T = f32;
-    var x0: @Vector(2, T) = [_]T{
+    var x0 = [_]T{
         -2.3741363830674853,
         -0.27588287433592273,
     };
 
-    var x1: @Vector(2, T) = [_]T{
+    var x1 = [_]T{
         -2.3846697075321135,
         -2.6767359305510112,
     };
 
-    const y = butterfly2sp(T, FFTMODE.FW, x0, x1);
+    const y = butterfly2sp(T, FFTMODE.FW, &x0, &x1);
 
-    const r: @Vector(4, T) = [_]T{
+    const r = [_]T{
         -4.758806090599599,
         -2.952618804886934,
         0.01053332446462818,
@@ -75,7 +72,7 @@ test "butterfly2sp" {
 }
 
 // 2x interleaved list
-pub inline fn butterfly2x2il(comptime T: type, comptime mode: FFTMODE, x02: [4]T, x13: [4]T) [2][4]T {
+pub inline fn butterfly2x2il(comptime T: type, comptime mode: FFTMODE, x02: *const [4]T, x13: *const [4]T) [2][4]T {
     _ = mode;
     const x02v = @Vector(4, T){ x02[0], x02[1], x02[2], x02[3] };
     const x13v = @Vector(4, T){ x13[0], x13[1], x13[2], x13[3] };
@@ -84,30 +81,30 @@ pub inline fn butterfly2x2il(comptime T: type, comptime mode: FFTMODE, x02: [4]T
 
 test "butterfly2x2il" {
     const T = f32;
-    var x0: @Vector(4, T) = [_]T{
+    var x0 = [_]T{
         1.0,
         2.0,
         3.0,
         4.0,
     };
 
-    var x1: @Vector(4, T) = [_]T{
+    var x1 = [_]T{
         5.0,
         6.0,
         7.0,
         8.0,
     };
 
-    const y = butterfly2x2il(T, FFTMODE.FW, x0, x1);
+    const y = butterfly2x2il(T, FFTMODE.FW, &x0, &x1);
 
-    const r0: @Vector(4, T) = [_]T{
+    const r0 = [_]T{
         1.0 + 5.0,
         2.0 + 6.0,
         3.0 + 7.0,
         4.0 + 8.0,
     };
 
-    const r1: @Vector(4, T) = [_]T{
+    const r1 = [_]T{
         1.0 - 5.0,
         2.0 - 6.0,
         3.0 - 7.0,
@@ -121,39 +118,32 @@ test "butterfly2x2il" {
 }
 
 // 2x interleaved packed
-pub inline fn butterfly2x2ip(comptime T: type, comptime mode: FFTMODE, x02: [4]T, x13: [4]T) [8]T {
+pub inline fn butterfly2x2ip(comptime T: type, comptime mode: FFTMODE, x02: *const [4]T, x13: *const [4]T) [8]T {
     _ = mode;
-    return [8]T{
-        x02[0] + x13[0],
-        x02[1] + x13[1],
-        x02[2] + x13[2],
-        x02[3] + x13[3],
-        x02[0] - x13[0],
-        x02[1] - x13[1],
-        x02[2] - x13[2],
-        x02[3] - x13[3],
-    };
+    const x02v = @Vector(4, T){ x02[0], x02[1], x02[2], x02[3] };
+    const x13v = @Vector(4, T){ x13[0], x13[1], x13[2], x13[3] };
+    return @as([4]T, x02v + x13v) ++ @as([4]T, x02v - x13v);
 }
 
 test "butterfly2x2ip" {
     const T = f32;
-    var x0: @Vector(4, T) = [_]T{
+    var x0 = [_]T{
         1.0,
         2.0,
         3.0,
         4.0,
     };
 
-    var x1: @Vector(4, T) = [_]T{
+    var x1 = [_]T{
         5.0,
         6.0,
         7.0,
         8.0,
     };
 
-    const y = butterfly2x2ip(T, FFTMODE.FW, x0, x1);
+    const y = butterfly2x2ip(T, FFTMODE.FW, &x0, &x1);
 
-    const r: @Vector(8, T) = [_]T{
+    const r = [_]T{
         1.0 + 5.0,
         2.0 + 6.0,
         3.0 + 7.0,
@@ -170,30 +160,30 @@ test "butterfly2x2ip" {
 }
 
 // 2x2 strided list
-pub inline fn butterfly2x2sl(comptime T: type, comptime mode: FFTMODE, x01: [4]T, x23: [4]T) [2][4]T {
+pub inline fn butterfly2x2sl(comptime T: type, comptime mode: FFTMODE, x01: *const [4]T, x23: *const [4]T) [2][4]T {
     const temp = utility.transpose2x2(T, mode, x01, x23);
-    return butterfly2x2il(T, mode, temp[0], temp[1]);
+    return butterfly2x2il(T, mode, &temp[0], &temp[1]);
 }
 
 test "butterfly2x2sl" {
     const T = f32;
-    var x0: @Vector(4, T) = [_]T{
+    var x0 = [_]T{
         1.0,
         2.0,
         5.0,
         6.0,
     };
 
-    var x1: @Vector(4, T) = [_]T{
+    var x1 = [_]T{
         3.0,
         4.0,
         7.0,
         8.0,
     };
 
-    const y = butterfly2x2sl(T, FFTMODE.FW, x0, x1);
+    const y = butterfly2x2sl(T, FFTMODE.FW, &x0, &x1);
 
-    const r0: @Vector(4, T) = [_]T{
+    const r0 = [_]T{
         1.0 + 5.0,
         2.0 + 6.0,
         3.0 + 7.0,
@@ -214,30 +204,30 @@ test "butterfly2x2sl" {
 }
 
 // 2x2 strided packed
-pub inline fn butterfly2x2sp(comptime T: type, comptime mode: FFTMODE, x01: [4]T, x23: [4]T) [8]T {
+pub inline fn butterfly2x2sp(comptime T: type, comptime mode: FFTMODE, x01: *const [4]T, x23: *const [4]T) [8]T {
     const temp = utility.transpose2x2(T, mode, x01, x23);
-    return butterfly2x2ip(T, mode, temp[0], temp[1]);
+    return butterfly2x2ip(T, mode, &temp[0], &temp[1]);
 }
 
 test "butterfly2x2sp" {
     const T = f32;
-    var x0: @Vector(4, T) = [_]T{
+    var x0 = [_]T{
         1.0,
         2.0,
         5.0,
         6.0,
     };
 
-    var x1: @Vector(4, T) = [_]T{
+    var x1 = [_]T{
         3.0,
         4.0,
         7.0,
         8.0,
     };
 
-    const y = butterfly2x2sp(T, FFTMODE.FW, x0, x1);
+    const y = butterfly2x2sp(T, FFTMODE.FW, &x0, &x1);
 
-    const r: @Vector(8, T) = [_]T{
+    const r = [_]T{
         1.0 + 5.0,
         2.0 + 6.0,
         3.0 + 7.0,
@@ -255,34 +245,34 @@ test "butterfly2x2sp" {
 
 // =butterfly-4================================================================
 // strided packed
-pub inline fn butterfly4sp(comptime T: type, comptime mode: FFTMODE, x01: [4]T, x23: [4]T) [8]T {
+pub inline fn butterfly4sp(comptime T: type, comptime mode: FFTMODE, x01: *const [4]T, x23: *const [4]T) [8]T {
     var y = butterfly2x2il(T, mode, x01, x23);
 
-    y[1][2..4].* = utility.rotateN90(T, mode, y[1][2..4].*);
+    y[1][2..4].* = utility.rotateN90(T, mode, y[1][2..4]);
 
-    return butterfly2x2sp(T, mode, y[0], y[1]);
+    return butterfly2x2sp(T, mode, &y[0], &y[1]);
 }
 
 test "butterfly4sp" {
     const T = f32;
 
-    var x0: @Vector(4, T) = [_]T{
+    var x0 = [_]T{
         1.2514228558126792,
         0.2574792970535659,
         -1.002327101854918,
         -1.1751269599415906,
     };
 
-    var x1: @Vector(4, T) = [_]T{
+    var x1 = [_]T{
         -1.3050896806819041,
         -1.30529768383336,
         0.22785218401785495,
         0.11806180009255686,
     };
 
-    const y = butterfly4sp(T, FFTMODE.FW, x0, x1);
+    const y = butterfly4sp(T, FFTMODE.FW, &x0, &x1);
 
-    const r: @Vector(8, T) = [_]T{
+    const r = [_]T{
         -0.828141742706288,
         -2.1048835466288276,
         1.2633237764604361,
@@ -307,14 +297,14 @@ pub inline fn butterflySR4l(comptime T: type, comptime mode: FFTMODE, comptime s
     const tw3 = comptime @Vector(2, T){ twr, -twi };
 
     // TODO: parallize this ?
-    const odds1 = utility.cmul(T, tw1, x1.*);
-    const odds3 = utility.cmul(T, tw3, x3.*);
+    const odds1 = utility.cmul(T, tw1, x1);
+    const odds3 = utility.cmul(T, tw3, x3);
 
-    var odds = butterfly2sl(T, mode, odds1, odds3);
-    odds[1] = utility.rotateN90(T, mode, odds[1]);
+    var odds = butterfly2sl(T, mode, &odds1, &odds3);
+    odds[1] = utility.rotateN90(T, mode, &odds[1]);
 
-    const a = butterfly2sl(T, mode, x0.*, odds[0]);
-    const b = butterfly2sl(T, mode, x2.*, odds[1]);
+    const a = butterfly2sl(T, mode, x0, &odds[0]);
+    const b = butterfly2sl(T, mode, x2, &odds[1]);
 
     x0.* = a[0];
     x1.* = a[1];
