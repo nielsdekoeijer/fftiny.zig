@@ -2,7 +2,7 @@ const std = @import("std");
 const fftiny = @import("fftiny.zig");
 pub fn main() !void {
     const T = f32;
-    const n: usize = 1024;
+    const n: usize = 256;
 
     @setEvalBranchQuota(10000000);
     var fft = comptime fftiny.plan(T, n, fftiny.FFTMODE.FW).init();

@@ -32,15 +32,15 @@ pub fn plan(comptime T: type, comptime n: usize, comptime mode: FFTMODE) type {
                     const x0 = x[iidx0 .. iidx0 + 2];
                     const iidx1 = comptime iidx(1, input_offset, stride);
                     const x1 = x[iidx1 .. iidx1 + 2];
-                    y[2 * output_offset + 0 .. 2 * output_offset + 4].* = butterflies.butterfly2sp(T, mode, x0.*, x1.*);
+                    y[2 * output_offset + 0 .. 2 * output_offset + 4].* = butterflies.butterfly2sp(T, mode, x0, x1);
                 },
                 4 => {
                     const iidx0 = comptime iidx(0, input_offset, stride);
                     const iidx1 = comptime iidx(1, input_offset, stride);
-                    const x01 = [_]T{ x[iidx0], x[iidx0 + 1], x[iidx1], x[iidx1 + 1] };
+                    const x01 = x[iidx0 .. iidx0 + 2] ++ x[iidx1 .. iidx1 + 2];
                     const iidx2 = comptime iidx(2, input_offset, stride);
                     const iidx3 = comptime iidx(3, input_offset, stride);
-                    const x23 = [_]T{ x[iidx2], x[iidx2 + 1], x[iidx3], x[iidx3 + 1] };
+                    const x23 = x[iidx2 .. iidx2 + 2] ++ x[iidx3 .. iidx3 + 2];
 
                     y[2 * output_offset + 0 .. 2 * output_offset + 8].* = butterflies.butterfly4sp(T, mode, x01, x23);
                 },
