@@ -1,3 +1,8 @@
+const std = @import("std");
+const utility = @import("utility.zig");
+
+pub const FFTMODE = enum { FW, BW };
+
 // =utils======================================================================
 // transpose 2x2
 pub inline fn transpose2x2(comptime T: type, comptime mode: FFTMODE, x01: [4]T, x23: [4]T) [2][4]T {
@@ -88,4 +93,3 @@ pub inline fn twiddle(comptime T: type, comptime mode: FFTMODE, comptime size: u
 }
 
 test "twiddle" {}
-

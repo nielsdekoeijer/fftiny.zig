@@ -1,7 +1,7 @@
 const std = @import("std");
 const utility = @import("utility.zig");
 
-pub const FFTMODE = enum { FW, BW };
+pub const FFTMODE = utility.FFTMODE;
 
 // =butterfly-2================================================================
 // strided list
@@ -307,8 +307,8 @@ pub inline fn butterflySR4l(comptime T: type, comptime mode: FFTMODE, comptime s
     const tw3 = comptime @Vector(2, T){ twr, -twi };
 
     // TODO: parallize this ?
-    const odds1 = cmul(T, tw1, x1.*);
-    const odds3 = cmul(T, tw3, x3.*);
+    const odds1 = utility.cmul(T, tw1, x1.*);
+    const odds3 = utility.cmul(T, tw3, x3.*);
 
     var odds = butterfly2sl(T, mode, odds1, odds3);
     odds[1] = utility.rotateN90(T, mode, odds[1]);
