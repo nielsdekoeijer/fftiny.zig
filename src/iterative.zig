@@ -18,8 +18,8 @@ inline fn cpBF2(
     comptime h: usize,
     comptime idx0: usize,
     comptime idx1: usize,
-    inp: []const Complex(T),
-    out: *[]Complex(T),
+    noalias inp: []const Complex(T),
+    noalias out: *[]Complex(T),
 ) void {
     out.*[h + 0] = Complex(T).add(inp[idx0], inp[idx1]);
     out.*[h + 1] = Complex(T).sub(inp[idx0], inp[idx1]);
@@ -31,7 +31,7 @@ inline fn cpBF4(
     comptime l: usize,
     comptime h: usize,
     comptime k: usize,
-    out: *[]Complex(T),
+    noalias out: *[]Complex(T),
 ) void {
     const a = out.*[comptime h + k + ((0 * l) / 4)];
     const b = out.*[comptime h + k + ((1 * l) / 4)];
@@ -72,8 +72,8 @@ pub fn cpFFT(
     comptime T: type,
     comptime S: FFTDirection,
     comptime N: usize,
-    inp: []const Complex(T),
-    out: *[]Complex(T),
+    noalias inp: []const Complex(T),
+    noalias out: *[]Complex(T),
 ) void {
     comptime var p = 0;
     comptime var q = 0;
@@ -91,7 +91,7 @@ pub fn cpFFT(
 
         if (comptime c > 1 - @mod(c, 2)) {
             comptime var j = 1 - @mod(c, 2);
-            inline while(j < c) {
+            inline while (j < c) {
                 inline for (0..comptime std.math.pow(usize, 2, j)) |b| {
                     cpBF4(
                         T,
@@ -113,7 +113,12 @@ pub fn cpFFT(
     }
 }
 
-pub fn fwFFTIterative(comptime T: type, comptime n: usize, inp: []const Complex(T), out: *[]Complex(T)) void {
+pub fn fwFFTIterative(
+    comptime T: type,
+    comptime n: usize,
+    noalias inp: []const Complex(T),
+    noalias out: *[]Complex(T),
+) void {
     @setEvalBranchQuota(n * n * n);
     cpFFT(T, FFTDirection.FW, n, inp, out);
 }
