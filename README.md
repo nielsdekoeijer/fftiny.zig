@@ -3,7 +3,7 @@ A zig implementation of 'A Depth-First Iterative Algorithm for the Conjugate Pai
 Here, I am not aiming to be the fastest FFT algorithm, but just to provide a portable FFT I can dogfeed in my own projects.
 To this end I aim to provide only one dimensional `cfft` and `rfft` interfaces (thus keeping it 'tiny', so to say).
 
-NOTE: HEAVY WIP DONT USE
+***NOTE: HEAVY WIP DONT USE***
 
 ## Benchmarking
 I've created a benchmark vs FFTW, a well known FFT algorithm. Just run 
