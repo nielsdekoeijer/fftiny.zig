@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
         .name = "fftiny",
         .root_source_file = b.path("src/bench.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = std.builtin.OptimizeMode.ReleaseFast,
     });
     bench_exe.linkSystemLibrary("fftw3f"); // for single precision
     bench_exe.linkLibC();

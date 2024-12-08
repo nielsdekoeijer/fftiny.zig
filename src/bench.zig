@@ -76,7 +76,7 @@ pub fn fwFFTWBenchmark(comptime T: type, comptime niter: usize, comptime size: u
 }
 
 pub fn main() !void {
-    const sizes = [_]usize{ 8, 16, 32, 64 };
+    const sizes = [_]usize{ 8, 16, 32, 64, 128 };
     const niter = 10000000;
     const T = f32;
 
