@@ -7,7 +7,7 @@ To this end I aim to provide only one dimensional `cfft` and `rfft` interfaces (
 
 ## Benchmarking
 I've created a benchmark vs FFTW, a well known FFT algorithm. Just run 
-```zig
+```
 zig build bench -Doptimize=ReleaseFast # optimization recommended...!
 ```
 
