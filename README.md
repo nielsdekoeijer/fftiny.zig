@@ -12,7 +12,7 @@ zig build bench -Doptimize=ReleaseFast # optimization recommended...!
 ```
 
 ### Latest
-For my own comparision purposes, my latest benchmark yielded me:
+For my own comparision purposes as I slowly improve things (with luck), my latest benchmark yielded me:
 ```
 Starting size 8...
 ->       fwFFTIterative:  +53509188 ns, mean:       5.35 ns
