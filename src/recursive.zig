@@ -38,18 +38,38 @@ inline fn cpBF4(
     const c = out.*[comptime h + k + ((2 * l) / 4)];
     const d = out.*[comptime h + k + ((3 * l) / 4)];
     const w = comptime std.math.complex.exp(Complex(T).init(0.0, -2.0 * std.math.pi * @as(T, @floatFromInt(k)) / @as(T, @floatFromInt(l))));
+    const m = comptime Complex(T).conjugate(w);
 
     switch (S) {
         FFTDirection.FW => blk: {
-            const wc = Complex(T).mul(w, c);
-            const wd = Complex(T).mul(comptime Complex(T).conjugate(w), d);
-            const p = Complex(T).add(wc, wd);
-            const q = Complex(T).mulbyi(Complex(T).sub(wc, wd));
+            // const wc = Complex(T).mul(w, c);
+            // const wd = Complex(T).mul(comptime Complex(T).conjugate(w), d);
+            const wm = @Vector(4, T) { w.re, w.im, m.re, m.im };
+            const cd = @Vector(4, T) { c.re, c.im, d.re, d.im };
+            const re = @shuffle(f32, wm, wm, @Vector(4, i32){ 0, 0, 2, 2 }) * cd;
+            const _b = @shuffle(f32, cd, cd, @Vector(4, i32){ 1, 0, 3, 2 });
+            const im = @shuffle(f32, wm, wm, @Vector(4, i32){ 1, 1, 3, 3 }) * _b;
+            const wcmd = re + @Vector(4, f32){ -im[0], im[1], -im[2], im[3] };
 
-            out.*[comptime h + k + ((l * 0) / 4)] = Complex(T).add(a, p);
-            out.*[comptime h + k + ((l * 1) / 4)] = Complex(T).sub(b, q);
-            out.*[comptime h + k + ((l * 2) / 4)] = Complex(T).sub(a, p);
-            out.*[comptime h + k + ((l * 3) / 4)] = Complex(T).add(b, q);
+            // const p = Complex(T).add(wc, wd);
+            // const q = Complex(T).mulbyi(Complex(T).sub(wc, wd));
+            const wcwc = @shuffle(f32, wcmd, undefined, @Vector(4, i32) {0, 1, 0, 1});
+            const mdmd = @shuffle(f32, wcmd, -wcmd, @Vector(4, i32) {2, 3, -3, -4});
+            const ab = @Vector(4, T) { a.re, a.im, b.re, b.im };
+            var pq = wcwc + mdmd;
+            pq = @Vector(4, f32) {pq[0], pq[1], pq[3], -pq[2] };
+
+            {
+                const rs = ab + pq;
+                out.*[comptime h + k + ((l * 0) / 4)] = Complex(T).init(rs[0], rs[1]);
+                out.*[comptime h + k + ((l * 1) / 4)] = Complex(T).init(rs[2], rs[3]);
+            }
+            {
+                const rs = ab - pq;
+                out.*[comptime h + k + ((l * 2) / 4)] = Complex(T).init(rs[0], rs[1]);
+                out.*[comptime h + k + ((l * 3) / 4)] = Complex(T).init(rs[2], rs[3]);
+            }
+
             break :blk;
         },
 

@@ -140,6 +140,7 @@ pub fn fwFFTIterative(
     noalias out: *[]Complex(T),
 ) void {
     @setEvalBranchQuota(n * n * n);
+    @setFloatMode(std.builtin.FloatMode.optimized);
     cpFFT(T, FFTDirection.FW, n, inp, out);
 }
 
