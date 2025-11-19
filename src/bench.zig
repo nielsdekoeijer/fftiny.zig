@@ -2,7 +2,7 @@ const std = @import("std");
 const Complex = std.math.complex.Complex;
 
 pub fn fwFFTIterativeBenchmark(comptime T: type, comptime niter: usize, comptime size: usize, stdout: anytype, bw: anytype) !void {
-    const fwFFTIterative = @import("iterative.zig").fwFFTIterative;
+    const fwFFTIterative = @import("iterative_comptime.zig").fwFFTIterativeComptime;
 
     var inp = try std.heap.page_allocator.alloc(Complex(T), size);
     defer std.heap.page_allocator.free(inp);
@@ -13,6 +13,8 @@ pub fn fwFFTIterativeBenchmark(comptime T: type, comptime niter: usize, comptime
     const fw_start = std.time.nanoTimestamp();
     for (0..niter) |_| {
         fwFFTIterative(T, comptime size, inp[0..], @constCast(&out[0..]));
+        std.mem.doNotOptimizeAway(inp);
+        std.mem.doNotOptimizeAway(out);
     }
     const fw_end = std.time.nanoTimestamp();
 
@@ -24,7 +26,7 @@ pub fn fwFFTIterativeBenchmark(comptime T: type, comptime niter: usize, comptime
 }
 
 pub fn fwFFTRecursiveBenchmark(comptime T: type, comptime niter: usize, comptime size: usize, stdout: anytype, bw: anytype) !void {
-    const fwFFTRecursive = @import("recursive.zig").fwFFTRecursive;
+    const fwFFTRecursive = @import("recursive_comptime.zig").fwFFTRecursiveComptime;
 
     var inp = try std.heap.page_allocator.alloc(Complex(T), size);
     defer std.heap.page_allocator.free(inp);
@@ -35,7 +37,10 @@ pub fn fwFFTRecursiveBenchmark(comptime T: type, comptime niter: usize, comptime
     const fw_start = std.time.nanoTimestamp();
     for (0..niter) |_| {
         fwFFTRecursive(T, comptime size, inp[0..], @constCast(&out[0..]));
+        std.mem.doNotOptimizeAway(inp);
+        std.mem.doNotOptimizeAway(out);
     }
+
     const fw_end = std.time.nanoTimestamp();
 
     try stdout.print(
@@ -57,7 +62,7 @@ pub fn fwFFTWBenchmark(comptime T: type, comptime niter: usize, comptime size: u
     defer fftw.fftwf_free(out_ptr);
     const out = @as([*c][2]f32, @alignCast(@ptrCast(out_ptr)));
 
-    const plan = fftw.fftwf_plan_dft_1d(@intCast(size), inp, out, fftw.FFTW_FORWARD, fftw.FFTW_ESTIMATE);
+    const plan = fftw.fftwf_plan_dft_1d(@intCast(size), inp, out, fftw.FFTW_FORWARD, fftw.FFTW_PATIENT);
     if (plan == null) return error.PlanCreationFailed;
     defer fftw.fftwf_destroy_plan(plan);
 

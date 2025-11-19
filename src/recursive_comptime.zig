@@ -37,7 +37,10 @@ inline fn cpBF4(
     const b = out.*[comptime h + k + ((1 * l) / 4)];
     const c = out.*[comptime h + k + ((2 * l) / 4)];
     const d = out.*[comptime h + k + ((3 * l) / 4)];
-    const w = comptime std.math.complex.exp(Complex(T).init(0.0, -2.0 * std.math.pi * @as(T, @floatFromInt(k)) / @as(T, @floatFromInt(l))));
+    const w = comptime std.math.complex.exp(Complex(T).init(
+        0.0,
+        -2.0 * std.math.pi * @as(T, @floatFromInt(k)) / @as(T, @floatFromInt(l)),
+    ));
 
     switch (S) {
         FFTDirection.FW => blk: {
@@ -101,7 +104,7 @@ pub fn cpFFTRecursive(
     }
 }
 
-pub fn fwFFTRecursive(comptime T: type, comptime n: usize, inp: []const Complex(T), out: *[]Complex(T)) void {
+pub fn fwFFTRecursiveComptime(comptime T: type, comptime n: usize, inp: []const Complex(T), out: *[]Complex(T)) void {
     @setEvalBranchQuota(n * n);
     cpFFTRecursive(T, FFTDirection.FW, n, n, 0, 0, inp, out);
 }
@@ -145,7 +148,7 @@ test "fwFFT with 8-point FFT" {
     const inps: []const Complex(T) = inp[0..];
     const outs: []Complex(T) = out[0..];
 
-    fwFFTRecursive(T, 8, inps, @constCast(&outs));
+    fwFFTRecursiveComptime(T, 8, inps, @constCast(&outs));
 
     for (0..8) |i| {
         try std.testing.expectApproxEqAbs(ref[i].re, out[i].re, 1e-5);
@@ -153,7 +156,7 @@ test "fwFFT with 8-point FFT" {
     }
 }
 
-pub fn bwFFTRecursive(comptime T: type, comptime n: usize, inp: []const Complex(T), out: *[]Complex(T)) void {
+pub fn bwFFTRecursiveComptime(comptime T: type, comptime n: usize, inp: []const Complex(T), out: *[]Complex(T)) void {
     @setEvalBranchQuota(n * n);
     cpFFTRecursive(T, FFTDirection.BW, n, n, 0, 0, inp, out);
 }
@@ -197,7 +200,7 @@ test "bwFFT with 8-point FFT" {
     const inps: []const Complex(T) = inp[0..];
     const outs: []Complex(T) = out[0..];
 
-    bwFFTRecursive(T, 8, inps, @constCast(&outs));
+    bwFFTRecursiveComptime(T, 8, inps, @constCast(&outs));
 
     for (0..8) |i| {
         try std.testing.expectApproxEqAbs(ref[i].re, out[i].re / 8.0, 1e-5);

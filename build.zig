@@ -18,7 +18,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = std.builtin.OptimizeMode.ReleaseFast,
     });
-    bench_exe.linkSystemLibrary("fftw3f"); // for single precision
+    bench_exe.linkSystemLibrary("fftw3f");
     bench_exe.linkLibC();
     b.installArtifact(bench_exe);
 
